@@ -157,7 +157,8 @@ class CartSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        source='ingredient', queryset=Ingredient.objects.all(),
+        source='ingredient',
+        queryset=Ingredient.objects.all(),
         read_only=False
     )
     name = serializers.ReadOnlyField(source='ingredient.name')
@@ -224,14 +225,16 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         request_user = self.context.get('request').user.id
         queryset = RecipeFavorites.objects.filter(
-            user=request_user, recipe=obj.id
+            user=request_user,
+            recipe=obj.id
         ).exists()
         return queryset
 
     def get_is_in_shopping_cart(self, obj):
         request_user = self.context.get('request').user.id
         queryset = RecipeCart.objects.filter(
-            user=request_user, recipe=obj.id
+            user=request_user,
+            recipe=obj.id
         ).exists()
         return queryset
 

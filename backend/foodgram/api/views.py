@@ -182,12 +182,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         author = self.request.query_params.get('author')
         tags = self.request.query_params.getlist('tags')
-        if not self.request.user.is_authenticated and (
-            is_favorited == '1'
-            or is_in_shopping_cart == '1'
-        ):
-            return Recipe.objects.none()
-        if self.request.user.is_authenticated:
+        try:
             if is_favorited == '1':
                 filter_ids = self.request.user.recipes_in_fav.values_list(
                     'id'
@@ -208,23 +203,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     'id'
                 )
                 queryset = queryset.exclude(id__in=filter_ids)
-        if author:
-            author = User.objects.get(pk=int(author))
-            if not author:
-                return Recipe.objects.none()
-            queryset = queryset.filter(author=author)
-        if tags:
-            for tag_slug in tags:
-                try:
+            if author:
+                author = User.objects.get(pk=int(author))
+                queryset = queryset.filter(author=author)
+            if tags:
+                for tag_slug in tags:
                     tag_id = Tag.objects.values_list(
                         'id',
                         flat=True
                     ).get(
                         slug=tag_slug
                     )
-                except Exception:
-                    return Recipe.objects.none()
-                for recipe in queryset:
-                    if not recipe.tags.filter(pk=tag_id).exists():
-                        queryset = queryset.exclude(id=recipe.id)
-        return queryset
+                    for recipe in queryset:
+                        if not recipe.tags.filter(pk=tag_id).exists():
+                            queryset = queryset.exclude(id=recipe.id)
+            return queryset
+        except Exception:
+            return Recipe.objects.none()
