@@ -9,9 +9,6 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    id = models.AutoField(
-        primary_key=True
-    )
     name = models.CharField(
         max_length=200,
         unique=True,
@@ -32,11 +29,12 @@ class Tag(models.Model):
         help_text='Уникальный слаг'
     )
 
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
 
 class Ingredient(models.Model):
-    id = models.AutoField(
-        primary_key=True
-    )
     name = models.CharField(
         max_length=200,
         verbose_name='name',
@@ -49,11 +47,12 @@ class Ingredient(models.Model):
         help_text='Единицы измерения'
     )
 
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
 
 class Recipe(models.Model):
-    id = models.AutoField(
-        primary_key=True
-    )
     name = models.CharField(
         max_length=200,
         verbose_name='name',
@@ -61,7 +60,8 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         'Картинка',
-        upload_to='recipe/'
+        upload_to='recipe/',
+        blank=True  # !!! убрать
     )
     text = models.TextField(
         verbose_name='description',
@@ -110,6 +110,10 @@ class Recipe(models.Model):
         help_text='Автор рецепта'
     )
 
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
@@ -133,7 +137,14 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-        unique_together = ['recipe', 'ingredient']
+        verbose_name = 'Связь рецепта с ингредиентом'
+        verbose_name_plural = 'Связь рецептов с ингредиентами'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient'
+            )
+        ]
 
 
 class RecipeTag(models.Model):
@@ -151,7 +162,14 @@ class RecipeTag(models.Model):
     )
 
     class Meta:
-        unique_together = ['recipe', 'tag']
+        verbose_name = 'Связь рецепта с тегом'
+        verbose_name_plural = 'Связь рецептов с тегами'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'tag'],
+                name='unique_recipe_tag'
+            )
+        ]
 
 
 class Follow(models.Model):
@@ -167,7 +185,14 @@ class Follow(models.Model):
     )
 
     class Meta:
-        unique_together = ['user', 'author']
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow'
+            )
+        ]
 
 
 class RecipeFavorites(models.Model):
@@ -185,7 +210,14 @@ class RecipeFavorites(models.Model):
     )
 
     class Meta:
-        unique_together = ['user', 'recipe']
+        verbose_name = 'Рецепт в списке избранных'
+        verbose_name_plural = 'Рецепты в списках избранных'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_recipe_favorites'
+            )
+        ]
 
 
 class RecipeCart(models.Model):
@@ -203,4 +235,11 @@ class RecipeCart(models.Model):
     )
 
     class Meta:
-        unique_together = ['user', 'recipe']
+        verbose_name = 'Рецепт в корзине'
+        verbose_name_plural = 'Рецепты в корзинах'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_recipe_cart'
+            )
+        ]

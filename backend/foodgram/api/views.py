@@ -1,12 +1,12 @@
-import re
-
 from django.db.models import F, Sum
+from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
+from django.urls import resolve
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
-from rest_framework_csv.renderers import CSVRenderer
 
+from .filters import IngredientFilter, RecipeFilter
 from .mixins import ListViewSet
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from .serializers import (
@@ -15,6 +15,7 @@ from .serializers import (
     RecipeSerializer, ShortRecipeSerializer,
     TagSerializer
 )
+from .utils import CartRender
 from recipe.models import (
     Follow, Ingredient, Recipe, RecipeCart,
     RecipeFavorites, RecipeIngredient, Tag, User
@@ -29,16 +30,11 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
     permission_classes = [IsAdminOrReadOnly]
-
-    def get_queryset(self):
-        queryset = Ingredient.objects.all()
-        name = self.request.query_params.get('name')
-        if name is not None:
-            queryset = queryset.filter(name__startswith=name)
-        return queryset
+    filterset_class = IngredientFilter
 
 
 @api_view(['POST', 'DELETE'])
@@ -47,27 +43,23 @@ def follow_view(request, pk):
         serializer = FollowSerializer(
             data={'user': request.user.id, 'author': pk}
         )
-        if serializer.is_valid():
-            serializer.save()
-            following_user = get_object_or_404(User, id=pk)
-            user_serializer = FollowUserSerializer(
-                following_user,
-                context={'request': request}, many=False
-            )
-            return Response(
-                user_serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        following_user = get_object_or_404(User, id=pk)
+        user_serializer = FollowUserSerializer(
+            following_user,
+            context={'request': request}, many=False
+        )
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            user_serializer.data,
+            status=status.HTTP_201_CREATED
         )
     following_user = get_object_or_404(User, id=pk)
     follow = Follow.objects.filter(
         user=request.user,
         author=following_user
     )
-    if not follow:
+    if not follow.exists():
         return Response(
             {'errors': 'Подписки не существует'},
             status=status.HTTP_400_BAD_REQUEST
@@ -89,61 +81,45 @@ class FollowViewSet(ListViewSet):
 @api_view(['POST', 'DELETE'])
 def cart_favorite_view(request, pk):
     if request.method == 'POST':
-        if re.compile(
-            r"^(\w|\W)+favorite/$"
-        ).match(request.stream.path):
+        if resolve(request.path_info).url_name == 'modify_favs':
             serializer = FavoriteSerializer(
                 data={'user': request.user.id, 'recipe': pk})
-        elif re.compile(
-            r"^(\w|\W)+shopping_cart/$"
-        ).match(request.stream.path):
+        elif resolve(request.path_info).url_name == 'modify_cart':
             serializer = CartSerializer(
                 data={'user': request.user.id, 'recipe': pk}
             )
-        if serializer.is_valid():
-            serializer.save()
-            recipe = get_object_or_404(Recipe, id=pk)
-            recipe_serializer = ShortRecipeSerializer(
-                recipe,
-                context={'request': request},
-                many=False
-            )
-            return Response(
-                recipe_serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        recipe = get_object_or_404(Recipe, id=pk)
+        recipe_serializer = ShortRecipeSerializer(
+            recipe,
+            context={'request': request},
+            many=False
+        )
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            recipe_serializer.data,
+            status=status.HTTP_201_CREATED
         )
     recipe = get_object_or_404(Recipe, id=pk)
-    if re.compile(
-        r"^(\w|\W)+favorite/$"
-    ).match(request.stream.path):
-        existsObject = RecipeFavorites.objects.filter(
+    if resolve(request.path_info).url_name == 'modify_favs':
+        removing_object = RecipeFavorites.objects.filter(
             user=request.user,
             recipe=recipe
         )
         mask = 'избранном'
-    elif re.compile(
-        r"^(\w|\W)+shopping_cart/$"
-    ).match(request.stream.path):
-        existsObject = RecipeCart.objects.filter(
+    elif resolve(request.path_info).url_name == 'modify_cart':
+        removing_object = RecipeCart.objects.filter(
             user=request.user,
             recipe=recipe
         )
         mask = 'корзине'
-    if not existsObject:
+    if not removing_object.exists():
         return Response(
             {'errors': f'Рецепт отсутствует в {mask}'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    existsObject.delete()
+    removing_object.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class CartRender(CSVRenderer):
-    header = ['name', 'sum', 'measurement_unit']
 
 
 @api_view(['GET'])
@@ -162,61 +138,22 @@ def download_cart(request):
         measurement_unit=F('ingredient__measurement_unit'),
         all_amt=Sum('amount')
     )
-    content = [{'name': ingredient['name'],
-                'sum': ingredient['all_amt'],
-                'measurement_unit': ingredient['measurement_unit']}
-               for ingredient in ingredients]
-    return Response(content)
+    content = [{
+        'name': ingredient['name'],
+        'sum': ingredient['all_amt'],
+        'measurement_unit': ingredient['measurement_unit']
+    } for ingredient in ingredients]
+    response = StreamingHttpResponse(
+        request.accepted_renderer.render(content),
+        content_type="text/csv"
+    )
+    response['Content-Disposition'] = 'attachment; filename="cart.csv"'
+    return response
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [IsOwnerOrReadOnly]
-
-    def get_queryset(self):
-        queryset = Recipe.objects.all()
-        is_favorited = self.request.query_params.get('is_favorited')
-        is_in_shopping_cart = self.request.query_params.get(
-            'is_in_shopping_cart'
-        )
-        author = self.request.query_params.get('author')
-        tags = self.request.query_params.getlist('tags')
-        try:
-            if is_favorited == '1':
-                filter_ids = self.request.user.recipes_in_fav.values_list(
-                    'id'
-                )
-                queryset = queryset.filter(id__in=filter_ids)
-            if is_favorited == '0':
-                filter_ids = self.request.user.recipes_in_fav.values_list(
-                    'id'
-                )
-                queryset = queryset.exclude(id__in=filter_ids)
-            if is_in_shopping_cart == '1':
-                filter_ids = self.request.user.recipes_in_cart.values_list(
-                    'id'
-                )
-                queryset = queryset.filter(id__in=filter_ids)
-            if is_in_shopping_cart == '0':
-                filter_ids = self.request.user.recipes_in_cart.values_list(
-                    'id'
-                )
-                queryset = queryset.exclude(id__in=filter_ids)
-            if author:
-                author = User.objects.get(pk=int(author))
-                queryset = queryset.filter(author=author)
-            if tags:
-                for tag_slug in tags:
-                    tag_id = Tag.objects.values_list(
-                        'id',
-                        flat=True
-                    ).get(
-                        slug=tag_slug
-                    )
-                    for recipe in queryset:
-                        if not recipe.tags.filter(pk=tag_id).exists():
-                            queryset = queryset.exclude(id=recipe.id)
-            return queryset
-        except Exception:
-            return Recipe.objects.none()
+    filterset_class = RecipeFilter
