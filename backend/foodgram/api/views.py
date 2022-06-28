@@ -1,5 +1,5 @@
 from django.db.models import F, Sum
-from django.http import StreamingHttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import resolve
 from rest_framework import status, viewsets
@@ -143,7 +143,7 @@ def download_cart(request):
         'sum': ingredient['all_amt'],
         'measurement_unit': ingredient['measurement_unit']
     } for ingredient in ingredients]
-    response = StreamingHttpResponse(
+    response = HttpResponse(
         request.accepted_renderer.render(content),
         content_type="text/csv"
     )

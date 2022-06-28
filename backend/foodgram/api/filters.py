@@ -16,7 +16,7 @@ class RecipeFilter(django_filters.FilterSet):
         choices=flag_choises
     )
     is_in_shopping_cart = django_filters.ChoiceFilter(
-        method='get_is_favorited',
+        method='get_is_in_shopping_cart',
         choices=flag_choises
     )
     author = django_filters.NumberFilter()
@@ -44,12 +44,12 @@ class RecipeFilter(django_filters.FilterSet):
     def get_is_in_shopping_cart(self, queryset, field_name, value):
         if not self.request.user.is_authenticated:
             return queryset.none()
-        if value == 1:
+        if value == '1':
             filter_ids = self.request.user.recipes_in_cart.values_list(
                 'id'
             )
             queryset = queryset.filter(id__in=filter_ids)
-        if value == 0:
+        if value == '0':
             filter_ids = self.request.user.recipes_in_cart.values_list(
                 'id'
             )

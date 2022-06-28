@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 import webcolors
@@ -191,6 +192,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    image = Base64ImageField()
 
     def to_internal_value(self, data):
         tags_id = data.get('tags')
@@ -276,6 +278,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         instance = Recipe.objects.create(
             author=self.context.get('request').user,
+            image=validated_data.pop('image'),
             **validated_data
         )
         self.recipe_ingredient_create(instance, recipe_ingredient_data)
