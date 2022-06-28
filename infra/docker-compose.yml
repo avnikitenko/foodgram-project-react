@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
   backend:
-    image: avnikitenko/foodgram_backend:v1
+    image: avnikitenko/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/backend_static/
@@ -17,7 +17,7 @@ services:
     env_file:
       - ./.env
   frontend:
-    image: avnikitenko/foodgram_frontend:v1
+    image: avnikitenko/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
