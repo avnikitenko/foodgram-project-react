@@ -1,7 +1,5 @@
 import django_filters
-
 from recipe.models import Tag
-
 
 flag_choises = ((0, False), (1, True))
 

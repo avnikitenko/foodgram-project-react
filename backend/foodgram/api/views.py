@@ -2,6 +2,8 @@ from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import resolve
+from recipe.models import (Follow, Ingredient, Recipe, RecipeCart,
+                           RecipeFavorites, RecipeIngredient, Tag, User)
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
@@ -9,17 +11,11 @@ from rest_framework.response import Response
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import ListViewSet
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .serializers import (
-    CartSerializer, FavoriteSerializer, FollowSerializer,
-    FollowUserSerializer, IngredientSerializer,
-    RecipeSerializer, ShortRecipeSerializer,
-    TagSerializer
-)
+from .serializers import (CartSerializer, FavoriteSerializer, FollowSerializer,
+                          FollowUserSerializer, IngredientSerializer,
+                          RecipeSerializer, ShortRecipeSerializer,
+                          TagSerializer)
 from .utils import CartRender
-from recipe.models import (
-    Follow, Ingredient, Recipe, RecipeCart,
-    RecipeFavorites, RecipeIngredient, Tag, User
-)
 
 
 class TagViewSet(viewsets.ModelViewSet):
