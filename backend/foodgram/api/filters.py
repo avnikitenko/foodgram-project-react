@@ -32,7 +32,7 @@ class RecipeFilter(django_filters.FilterSet):
                 'id'
             )
             return queryset.filter(id__in=filter_ids)
-        elif value == '0':
+        if value == '0':
             filter_ids = self.request.user.recipes_in_fav.values_list(
                 'id'
             )
@@ -46,7 +46,7 @@ class RecipeFilter(django_filters.FilterSet):
                 'id'
             )
             return queryset.filter(id__in=filter_ids)
-        elif value == '0':
+        if value == '0':
             filter_ids = self.request.user.recipes_in_cart.values_list(
                 'id'
             )
