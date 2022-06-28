@@ -17,12 +17,12 @@ class RecipeFilter(django_filters.FilterSet):
         method='get_is_in_shopping_cart',
         choices=flag_choises
     )
-    author = django_filters.NumberFilter()
     tags = django_filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
         queryset=Tag.objects.all()
     )
+    author = django_filters.NumberFilter()
 
     def get_is_favorited(self, queryset, field_name, value):
         if not self.request.user.is_authenticated:
