@@ -37,6 +37,7 @@ class RecipeFilter(django_filters.FilterSet):
                 'id'
             )
             return queryset.exclude(id__in=filter_ids)
+        return queryset.none()
 
     def get_is_in_shopping_cart(self, queryset, field_name, value):
         if not self.request.user.is_authenticated:
@@ -51,3 +52,4 @@ class RecipeFilter(django_filters.FilterSet):
                 'id'
             )
             return queryset.exclude(id__in=filter_ids)
+        return queryset.none()
