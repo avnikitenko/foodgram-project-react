@@ -1,9 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-
 from foodgram.settings import MIN_COOKING_TIME, MIN_INGREDIENT_AMOUNT
-
 
 User = get_user_model()
 

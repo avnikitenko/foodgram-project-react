@@ -21,11 +21,10 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         request_user_id = self.context.get('request').user.id
-        queryset = Follow.objects.filter(
+        return Follow.objects.filter(
             author=obj.id,
             user=request_user_id
         ).exists()
-        return queryset
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -103,11 +102,10 @@ class FollowUserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         request_user_id = self.context.get('request').user.id
-        queryset = Follow.objects.filter(
+        return Follow.objects.filter(
             author=obj.id,
             user=request_user_id
         ).exists()
-        return queryset
 
     def get_recipes(self, obj):
         recipes_limit = self.context.get('request').query_params.get(
@@ -239,19 +237,17 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         request_user_id = self.context.get('request').user.id
-        queryset = RecipeFavorites.objects.filter(
+        return RecipeFavorites.objects.filter(
             user=request_user_id,
             recipe=obj.id
         ).exists()
-        return queryset
 
     def get_is_in_shopping_cart(self, obj):
         request_user_id = self.context.get('request').user.id
-        queryset = RecipeCart.objects.filter(
+        return RecipeCart.objects.filter(
             user=request_user_id,
             recipe=obj.id
         ).exists()
-        return queryset
 
     def recipe_ingredient_create(self, recipe, recipe_ingredient_data):
         RecipeIngredient.objects.bulk_create(

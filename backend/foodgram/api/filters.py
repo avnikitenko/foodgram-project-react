@@ -31,13 +31,12 @@ class RecipeFilter(django_filters.FilterSet):
             filter_ids = self.request.user.recipes_in_fav.values_list(
                 'id'
             )
-            queryset = queryset.filter(id__in=filter_ids)
-        if value == '0':
+            return queryset.filter(id__in=filter_ids)
+        elif value == '0':
             filter_ids = self.request.user.recipes_in_fav.values_list(
                 'id'
             )
-            queryset = queryset.exclude(id__in=filter_ids)
-        return queryset
+            return queryset.exclude(id__in=filter_ids)
 
     def get_is_in_shopping_cart(self, queryset, field_name, value):
         if not self.request.user.is_authenticated:
@@ -46,10 +45,9 @@ class RecipeFilter(django_filters.FilterSet):
             filter_ids = self.request.user.recipes_in_cart.values_list(
                 'id'
             )
-            queryset = queryset.filter(id__in=filter_ids)
-        if value == '0':
+            return queryset.filter(id__in=filter_ids)
+        elif value == '0':
             filter_ids = self.request.user.recipes_in_cart.values_list(
                 'id'
             )
-            queryset = queryset.exclude(id__in=filter_ids)
-        return queryset
+            return queryset.exclude(id__in=filter_ids)
