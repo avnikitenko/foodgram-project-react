@@ -20,7 +20,8 @@ class RecipeFilter(django_filters.FilterSet):
     tags = django_filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
-        queryset=Tag.objects.all()
+        queryset=Tag.objects.all(),
+        lookup_type="eq"
     )
     author = django_filters.NumberFilter()
 
