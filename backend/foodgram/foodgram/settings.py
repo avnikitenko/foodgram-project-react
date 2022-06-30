@@ -108,7 +108,7 @@ REST_FRAMEWORK = {
 
     ),
     'DEFAULT_PAGINATION_CLASS':
-        'foodgram.foodgram.pagination.CustomPageNumberPagination',
+        'api.paginations.CustomPageNumberPagination',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
     ],

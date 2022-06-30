@@ -223,7 +223,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                     {'tags': ['Неуникальные идентификаторы тегов']},
                     code='invalid',
                 )
-        ingredients = data.get('ingredients')
+        ingredients = data.get('recipeingredient_set')
         if ingredients:
             existing_ingredients = []
             for recipe_ingredient in ingredients:
