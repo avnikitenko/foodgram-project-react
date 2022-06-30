@@ -1,13 +1,14 @@
 # Foodgram
-## Описание проекта
+## Информация о проекте
+Дипломный проект по курсу python-разработчик от Яндекс Практикум. 
 Проект Foodgram представляет собой сервис продуктового помощника.  
 Доступ к проекту: http://84.201.155.158/  
 Админ-панель: http://84.201.155.158/admin/ (login: admin, password: YjdsqGfhjkm1)  
 Документация на API: http://84.201.155.158/api/docs/  
 
-## Информация о проекте
-Дипломный проект по курсу python-разработчик от Яндекс Практикум.  
-Автор: Никитенко Алексей, 27 когорта  
+## Информация об авторе
+Никитенко Алексей, 27 когорта.  
+Email: ya.avnikitenko@gmail.com
   
 ![foodgram_workflow.yml](https://github.com/avnikitenko/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 ## Локальный запуск проекта
@@ -38,7 +39,7 @@ nano .env
 ```
 SECRET_KEY=<hash>
 DB_ENGINE=django.db.backends.postgresql
-DB_NAME=<значение БД>
+DB_NAME=<название БД>
 POSTGRES_USER=<пользователь postgres>
 POSTGRES_PASSWORD=<пароль для пользователя postgres>
 DB_HOST=<host БД>
@@ -67,6 +68,25 @@ docker-compose exec backend python manage.py collectstatic --no-input
 
 ```
 docker-compose exec backend python manage.py createsuperuser
+```
+
+Провести инициализирующую загрузку списка ингредиентов.  
+Открыть shell:
+
+```
+docker-compose exec backend python manage.py shell
+```
+
+Выполнить команды:
+```
+import psycopg2
+conn = psycopg2.connect("host='<host БД>' port='<порт БД>' dbname='<название БД>' user='<пользователь postgres>' password='<пароль для пользователя postgres>'")
+cur = conn.cursor()
+f = open(r'ingredients.csv', 'r')
+cur.copy_from(f, 'public.recipe_ingredient', sep=',', columns=('name', 'measurement_unit'))
+f.close()
+conn.commit()
+conn.close()
 ```
 
 Открыть браузер, перейти на localhost... PROFIT!
