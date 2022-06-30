@@ -5,12 +5,12 @@
 Доступ к проекту: http://84.201.155.158/  
 Админ-панель: http://84.201.155.158/admin/ (login: admin, password: YjdsqGfhjkm1)  
 Документация на API: http://84.201.155.158/api/docs/  
-
+  
+![foodgram_workflow.yml](https://github.com/avnikitenko/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)  
 ## Информация об авторе
 Никитенко Алексей, 27 когорта.  
 Email: ya.avnikitenko@gmail.com
   
-![foodgram_workflow.yml](https://github.com/avnikitenko/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 ## Локальный запуск проекта
 Клонировать репозиторий и перейти в папку infra в командной строке:
 
