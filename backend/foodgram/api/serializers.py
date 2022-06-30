@@ -225,14 +225,14 @@ class RecipeSerializer(serializers.ModelSerializer):
                 )
         ingredients = data.get('ingredients')
         if ingredients:
-            ingredients = []
+            existing_ingredients = []
             for recipe_ingredient in ingredients:
                 ingredient = recipe_ingredient['ingredient']
-                if ingredient in ingredients:
+                if ingredient in existing_ingredients:
                     raise serializers.ValidationError(
                         'Неуникальные ингредиенты'
                     )
-                ingredients.append(ingredient)
+                existing_ingredients.append(ingredient)
         return data
 
     def get_is_favorited(self, obj):
